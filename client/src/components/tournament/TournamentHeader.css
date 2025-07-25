@@ -1,0 +1,339 @@
+/* src/components/tournament/TournamentHeader.css */
+.tournament-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.tournament-header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.breadcrumb {
+  margin-bottom: 15px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.breadcrumb-link {
+  color: white;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.breadcrumb-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  margin: 0 8px;
+  opacity: 0.7;
+}
+
+.breadcrumb-current {
+  opacity: 0.9;
+}
+
+.header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 30px;
+  margin-bottom: 15px;
+}
+
+.header-left {
+  flex: 1;
+}
+
+.tournament-title-section {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.tournament-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.tournament-status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.status-registration {
+  background-color: rgba(33, 150, 243, 0.2);
+  color: #e3f2fd;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.status-progress {
+  background-color: rgba(255, 152, 0, 0.2);
+  color: #fff3e0;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.status-completed {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #e8f5e8;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.tournament-meta {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 10px;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meta-label {
+  font-size: 12px;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.meta-value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.tournament-description {
+  font-size: 16px;
+  line-height: 1.5;
+  opacity: 0.9;
+  margin: 0;
+  max-width: 600px;
+}
+
+.header-right {
+  display: flex;
+  align-items: flex-start;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background-color: #27ae60;
+  color: white;
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+}
+
+.btn-primary:hover {
+  background-color: #219a52;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-outline:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.dropdown:hover .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 8px 0;
+  min-width: 200px;
+  z-index: 1000;
+  margin-top: 5px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  color: #2c3e50;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.dropdown-item.text-danger {
+  color: #e74c3c;
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: #fdf2f2;
+}
+
+.dropdown-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background-color: #e9ecef;
+  margin: 8px 0;
+}
+
+.status-description {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  opacity: 0.9;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 10px 15px;
+  border-radius: 6px;
+  backdrop-filter: blur(10px);
+}
+
+.status-icon {
+  font-size: 16px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .tournament-header {
+    padding: 15px 0;
+  }
+  
+  .tournament-header-content {
+    padding: 0 15px;
+  }
+  
+  .header-main {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .tournament-title {
+    font-size: 24px;
+  }
+  
+  .tournament-title-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .tournament-meta {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .header-actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .btn {
+    flex: 1;
+    justify-content: center;
+    min-width: 120px;
+  }
+  
+  .dropdown-menu {
+    right: auto;
+    left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .tournament-meta {
+    gap: 15px;
+  }
+  
+  .meta-item {
+    min-width: 80px;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}
