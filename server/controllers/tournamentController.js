@@ -138,7 +138,7 @@ exports.startFirstRound = async (req, res) => {
       tournament.rounds.push(round._id);
       await tournament.save();
 
-
+    tournament.currentRound += 1;
     res.status(200).json({ message: 'Round 1 started', round });
   } catch (err) {
     console.error(err);
@@ -155,101 +155,262 @@ const determineColor = (p1, p2) => {
   return Math.random() > 0.5 ? p1 : p2;
 };
 
-exports.generateNextRound = async (req, res) => {
-  try {
-    const { tournamentId } = req.params;
+// controllers/roundController.js
 
-    const tournament = await Tournament.findById(tournamentId);
+// exports.generateNextRound = async (req, res) => {
+//   const { tournamentId } = req.params;
+
+//   try {
+//     const tournament = await Tournament.findById(tournamentId).populate('players');
+//     if (!tournament) {
+//       return res.status(404).json({ error: 'Tournament not found' });
+//     }
+
+//     const previousRounds = await Round.find({ tournament: tournamentId });
+//     const currentRoundNumber = previousRounds.length + 1;
+
+//     const players = [...tournament.players].sort((a, b) => b.points - a.points);
+//     const pairings = [];
+//     const updatedPlayers = [];
+
+//     while (players.length > 1) {
+//       const p1 = players.shift();
+//       const p2Index = players.findIndex(p2 => !p1.opponents.includes(p2._id.toString()));
+//       if (p2Index === -1) {
+//         players.push(p1); // No valid opponent, skip pairing this player for now
+//         continue;
+//       }
+
+//       const p2 = players.splice(p2Index, 1)[0];
+
+//       // Determine colors
+//       const p1Whites = p1.colorHistory.filter(c => c === 'white').length;
+//       const p1Blacks = p1.colorHistory.filter(c => c === 'black').length;
+//       const p2Whites = p2.colorHistory.filter(c => c === 'white').length;
+//       const p2Blacks = p2.colorHistory.filter(c => c === 'black').length;
+
+//       let whitePlayerId, blackPlayerId;
+//       if (p1Whites <= p1Blacks && p2Whites > p2Blacks) {
+//         whitePlayerId = p1._id;
+//         blackPlayerId = p2._id;
+//         p1.colorHistory.push('white');
+//         p2.colorHistory.push('black');
+//       } else if (p2Whites <= p2Blacks && p1Whites > p1Blacks) {
+//         whitePlayerId = p2._id;
+//         blackPlayerId = p1._id;
+//         p2.colorHistory.push('white');
+//         p1.colorHistory.push('black');
+//       } else {
+//         whitePlayerId = p1._id;
+//         blackPlayerId = p2._id;
+//         p1.colorHistory.push('white');
+//         p2.colorHistory.push('black');
+//       }
+
+//       p1.opponents.push(p2._id);
+//       p2.opponents.push(p1._id);
+
+//       pairings.push({
+//         whitePlayerId,
+//         blackPlayerId,
+//         result: null,
+//       });
+
+//       updatedPlayers.push(p1, p2);
+//     }
+
+//     // Handle bye if one player is left
+//     if (players.length === 1) {
+//       const byePlayer = players[0];
+//       byePlayer.points += 1;
+//       byePlayer.byes += 1;
+//       byePlayer.opponents.push(null);
+//       byePlayer.colorHistory.push('white'); // Arbitrary
+//       updatedPlayers.push(byePlayer);
+//     }
+
+//     const newRound = new Round({
+//       roundNumber: currentRoundNumber,
+//       tournament: tournamentId,
+//       pairings,
+//     });
+
+//     await newRound.save();
+
+//     // ✅ Add round ID to tournament and update round counter
+//     tournament.currentRound = currentRoundNumber;
+//     tournament.rounds.push(newRound._id);
+//     await tournament.save();
+
+//     // Save updated players
+//     for (const updatedPlayer of updatedPlayers) {
+//       await updatedPlayer.save();
+//     }
+
+//     return res.json({ message: `Round ${currentRoundNumber} generated`, round: newRound });
+
+//   } catch (err) {
+//     console.error(err);
+//     return res.status(500).json({ error: 'Server error' });
+//   }
+// };
+
+exports.generateNextRound = async (req, res) => {
+  const { tournamentId } = req.params;
+
+  try {
+    const tournament = await Tournament.findById(tournamentId).populate('players');
     if (!tournament) {
-      return res.status(404).json({ message: 'Tournament not found' });
+      return res.status(404).json({ error: 'Tournament not found' });
     }
 
-    const previousRounds = await Round.find({ tournament: tournamentId }).sort({ roundNumber: -1 });
-    const currentRoundNumber = previousRounds.length;
+    const previousRounds = await Round.find({ tournament: tournamentId });
+    const currentRoundNumber = previousRounds.length + 1;
 
-    const players = await Player.find({ tournament: tournamentId }).sort({ points: -1 });
+    // Sort: higher points first, then rating (optional if you store ratings)
+    const players = [...tournament.players].sort((a, b) => b.points - a.points);
 
-    const pairings = [];
-    const unpaired = new Set(players.map(p => p._id.toString()));
+    let pairings = [];
+    let updatedPlayers = [];
 
-    while (unpaired.size > 1) {
-      const [p1Id] = Array.from(unpaired);
-      const p1 = players.find(p => p._id.toString() === p1Id);
-      unpaired.delete(p1Id);
+    /**
+     * Backtracking pairing function
+     */
+    const pairPlayers = (remainingPlayers, currentPairings) => {
+      if (remainingPlayers.length === 0) return currentPairings; // All paired
 
-      let opponent = null;
-      for (let i = 0; i < players.length; i++) {
-        const p2 = players[i];
-        if (
-          unpaired.has(p2._id.toString()) &&
-          !p1.opponents.includes(p2._id) &&
-          p1._id.toString() !== p2._id.toString()
-        ) {
-          opponent = p2;
-          break;
+      const p1 = remainingPlayers[0];
+
+      // Try to find valid opponent
+      for (let i = 1; i < remainingPlayers.length; i++) {
+        const p2 = remainingPlayers[i];
+
+        // Skip if already played before
+        if (p1.opponents.includes(p2._id.toString())) continue;
+
+        // Determine colors based on history
+        const p1Whites = p1.colorHistory.filter(c => c === 'white').length;
+        const p1Blacks = p1.colorHistory.filter(c => c === 'black').length;
+        const p2Whites = p2.colorHistory.filter(c => c === 'white').length;
+        const p2Blacks = p2.colorHistory.filter(c => c === 'black').length;
+
+        let whitePlayerId, blackPlayerId;
+        if (p1Whites <= p1Blacks && p2Whites > p2Blacks) {
+          whitePlayerId = p1._id;
+          blackPlayerId = p2._id;
+          p1.colorHistory.push('white');
+          p2.colorHistory.push('black');
+        } else if (p2Whites <= p2Blacks && p1Whites > p1Blacks) {
+          whitePlayerId = p2._id;
+          blackPlayerId = p1._id;
+          p2.colorHistory.push('white');
+          p1.colorHistory.push('black');
+        } else {
+          whitePlayerId = p1._id;
+          blackPlayerId = p2._id;
+          p1.colorHistory.push('white');
+          p2.colorHistory.push('black');
         }
+
+        // Record opponents
+        p1.opponents.push(p2._id);
+        p2.opponents.push(p1._id);
+
+        // Try pairing rest
+        const nextRemaining = remainingPlayers.filter((_, idx) => idx !== 0 && idx !== i);
+        const result = pairPlayers(nextRemaining, [
+          ...currentPairings,
+          { whitePlayerId, blackPlayerId, result: null }
+        ]);
+
+        if (result) return result; // Found a valid full pairing
+
+        // ❌ Backtrack
+        p1.opponents.pop();
+        p2.opponents.pop();
+        p1.colorHistory.pop();
+        p2.colorHistory.pop();
       }
 
-      if (opponent) {
-        unpaired.delete(opponent._id.toString());
+      return null; // No valid pairing found from here
+    };
 
-        const white = determineColor(p1, opponent);
-        const black = white._id.toString() === p1._id.toString() ? opponent : p1;
+    pairings = pairPlayers(players, []);
 
-        pairings.push({
-          whitePlayerId: white._id,
-          blackPlayerId: black._id,
-          result: null,
-        });
-
-        // Update player objects
-        p1.opponents.push(opponent._id);
-        opponent.opponents.push(p1._id);
-        p1.colorHistory.push(white._id.toString() === p1._id.toString() ? 'white' : 'black');
-        opponent.colorHistory.push(white._id.toString() === opponent._id.toString() ? 'white' : 'black');
-      } else {
-        // Bye
-        p1.byes += 1;
-        p1.points += 1;
-
+    // If no valid pairing (due to all having played each other), allow repeats
+    if (!pairings) {
+      console.warn("No perfect pairing found, allowing repeats for this round");
+      const tempPlayers = [...players];
+      pairings = [];
+      while (tempPlayers.length > 1) {
+        const p1 = tempPlayers.shift();
+        const p2 = tempPlayers.shift();
         pairings.push({
           whitePlayerId: p1._id,
-          blackPlayerId: null,
-          result: 'bye',
+          blackPlayerId: p2._id,
+          result: null
         });
       }
     }
 
-    // Handle odd player out
-    if (unpaired.size === 1) {
-      const [byePlayerId] = Array.from(unpaired);
-      const byePlayer = players.find(p => p._id.toString() === byePlayerId);
-      byePlayer.byes += 1;
-      byePlayer.score += 1;
-
-      pairings.push({
-        whitePlayerId: byePlayer._id,
-        blackPlayerId: null,
-        result: 'bye',
-      });
+    // Handle bye if odd player count
+    if (players.length % 2 !== 0) {
+      const byePlayer = players[players.length - 1];
+      byePlayer.points += 1;
+      byePlayer.byes = (byePlayer.byes || 0) + 1;
+      byePlayer.opponents.push(null);
+      byePlayer.colorHistory.push('white'); // Arbitrary
     }
 
     // Save round
     const newRound = new Round({
-      roundNumber: currentRoundNumber + 1,
+      roundNumber: currentRoundNumber,
       tournament: tournamentId,
       pairings,
     });
 
     await newRound.save();
 
-    // Save updated players
-    await Promise.all(players.map(p => p.save()));
+    // Update tournament
+    tournament.currentRound = currentRoundNumber;
+    tournament.rounds.push(newRound._id);
+    await tournament.save();
 
-    return res.status(201).json({ message: `Round ${currentRoundNumber + 1} generated`, round: newRound });
-  } catch (error) {
-    console.error('Error generating next round:', error);
-    return res.status(500).json({ message: 'Server error' });
+    // Save all player updates
+    for (const player of players) {
+      await player.save();
+    }
+
+    return res.json({ message: `Round ${currentRoundNumber} generated`, round: newRound });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Server error' });
   }
 };
 
+
+// leaderBoard
+exports.getLeaderboard = async (req, res) => {
+  const { tournamentId } = req.params;
+
+  try {
+    const players = await Player.find({ tournament: tournamentId });
+
+    const leaderboard = players
+      .map(player => ({
+        _id: player._id,
+        name: player.name,
+        rating: player.rating,
+        points: player.points,
+        opponents: player.opponents,
+        colorHistory: player.colorHistory
+      }))
+      .sort((a, b) => b.points - a.points); // Sort by points descending
+
+    return res.json({ leaderboard });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Server error fetching leaderboard' });
+  }
+};

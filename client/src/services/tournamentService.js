@@ -40,10 +40,10 @@ export const tournamentService = {
   generatePairings: (tournamentId) => 
     api.post(`/tournaments/${tournamentId}/generate-next-round`),
   
-  updateResult: (tournamentId, roundId, pairingId, result) => 
+  updateResult: ( roundId, pairingId, result) => 
     api.put(`/rounds/${roundId}/pairings/${pairingId}/result`, { result }),
   
   // Get tournament standings
   getStandings: (tournamentId) => 
-    api.get(`/tournaments/${tournamentId}/standings`),
+    api.get(`/tournaments/${tournamentId}/leaderboard`),
 };

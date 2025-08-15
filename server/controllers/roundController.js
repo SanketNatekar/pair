@@ -19,14 +19,6 @@ async function updatePlayerDataAfterRound(roundId) {
       await Player.findByIdAndUpdate(blackPlayerId, { $inc: { points: 0.5 } });
     }
 
-    // // 2. Update colorHistory
-    // await Player.findByIdAndUpdate(whitePlayerId, {
-    //   $push: { colorHistory: 'white', opponents: blackPlayerId }
-    // });
-
-    // await Player.findByIdAndUpdate(blackPlayerId, {
-    //   $push: { colorHistory: 'black', opponents: whitePlayerId }
-    // });
   }
 
   console.log('✅ Player data (score, colors, opponents) updated');

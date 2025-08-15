@@ -4,7 +4,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { tournamentService } from '../services/tournamentService';
 import TournamentHeader from '../components/tournament/TournamentHeader.jsx';
 import TournamentTabs from '../components/tournament/TournamentTabs.jsx';
-import PlayersTab, { RoundsTab, StandingsTab, SettingsTab } from '../components/tournament/PlayersTabs.jsx';
+import PlayersTab, { StandingsTab, SettingsTab } from '../components/tournament/PlayersTabs.jsx';
+import RoundsTab from '../components/tournament/RoundsTab.jsx';
 import './TournamentDetail.css';
 
 const TournamentDetail = () => {
